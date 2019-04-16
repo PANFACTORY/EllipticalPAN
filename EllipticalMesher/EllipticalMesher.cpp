@@ -5,6 +5,7 @@
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
+
 #include <string>
 #include <fstream>
 #include <sstream>

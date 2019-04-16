@@ -5,9 +5,11 @@
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
+
 #pragma once
 #include <array>
 #include <cmath>
+
 
 class Point
 {
@@ -26,6 +28,8 @@ public:
 	double Norm();						//ベクトルのノルムを計算
 };
 
+
 Point operator*(const double &, const Point &);
+
 
 Point operator/(const double &, const Point &);
