@@ -85,7 +85,7 @@ void EllipticalMesher::MakeMesh(){
 }
 
 
-void EllipticalMesher::ExportMesh(std::string _fname){
+void EllipticalMesher::ExportToVTK(std::string _fname){
 	std::ofstream fout(_fname + ".vtk");
 	
 	//----------Headerの出力----------
@@ -117,4 +117,37 @@ void EllipticalMesher::ExportMesh(std::string _fname){
 	}
 
 	fout.close();
+}
+
+
+void EllipticalMesher::ExportForPANSFEM(std::string _fnameheader){
+	//----------Nodeの出力----------
+	std::ofstream fout_node(_fnameheader + "_Node.csv");
+
+	//.....Headerの出力.....
+	fout_node << "ID,DOX,x0,x1";
+
+	//.....座標を出力.....
+	for (int i = 0; i < this->inum; i++) {
+		for (int j = 0; j < this->jnum; j++) {
+			fout_node << std::endl << i * (this->jnum) + j << "," << "2" << "," << this->pin[i][j].x[0] << "," << this->pin[i][j].x[1];
+		}
+	}
+
+	fout_node.close();
+
+	//----------Elementの出力----------
+	std::ofstream fout_element(_fnameheader + "_Element.csv");
+
+	//.....Headerの出力.....
+	fout_element << "ID,NON,n0,n1,n2,n3";
+
+	//.....節点番号を出力.....
+	for (int i = 0; i < this->inum - 1; i++) {
+		for (int j = 0; j < this->jnum - 1; j++) {
+			fout_element << std::endl << i * (this->jnum - 1) + j << "," << "4" << "," << i * (this->jnum) + j << "," << (i + 1)*(this->jnum) + j << "," << (i + 1)*(this->jnum) + j + 1 << "," << i * (this->jnum) + j + 1;
+		}
+	}
+
+	fout_element.close();
 }

@@ -22,7 +22,8 @@ public:
 	
 	void SetBoundaryPoint(int, Point);		//境界上の点を追加
 	void MakeMesh();						//メッシュ生成
-	void ExportMesh(std::string);			//メッシュ表示
+	void ExportToVTK(std::string);			//メッシュ表示
+	void ExportForPANSFEM(std::string);		//PANSFEMのフォーマットに合わせて出力
 
 
 private:
