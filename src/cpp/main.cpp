@@ -52,7 +52,7 @@ int main() {
 	}
 
 	Mesh.MakeMesh();					
-	Mesh.ExportToVTK("mesh");			
-	Mesh.ExportForPANSFEM("mesh");
+	Mesh.ExportToVTK("sample/mesh");			
+	Mesh.ExportForPANSFEM("sample/mesh");
 	return 0;
 }
