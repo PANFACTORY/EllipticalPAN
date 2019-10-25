@@ -9,9 +9,10 @@
 #include <iostream>
 #include <cmath>
 #include "EllipticalMesher.h"
+#include "Point.h"
 
 int main() {
-	EllipticalMesher Mesh(50, 199);		//ƒƒbƒVƒƒ[ƒIƒuƒWƒFƒNƒg
+	EllipticalMesher Mesh(50, 199);		//ï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½[ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½g
 
 	Point P0(0.0, 0.0);
 	Point P1(4.0, 0.0);
@@ -48,8 +49,8 @@ int main() {
 		Mesh.SetBoundaryPoint(ipb, P7 + (P0 - P7)*i / 49);
 	}
 
-	Mesh.MakeMesh();					//ƒƒbƒVƒ…¶¬
-	Mesh.ExportToVTK("mesh");			//VTKƒtƒ@ƒCƒ‹‚Éo—Í
+	Mesh.MakeMesh();					//ï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	Mesh.ExportToVTK("mesh");			//VTKï¿½tï¿½@ï¿½Cï¿½ï¿½ï¿½Éoï¿½ï¿½
 	Mesh.ExportForPANSFEM("mesh");
 	return 0;
 }

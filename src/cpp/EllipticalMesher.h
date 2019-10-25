@@ -1,15 +1,48 @@
 //*****************************************************************************
-//Title		:EllipticalMesher/EllipticalMesher.cpp
+//Title		:EllipticalMesher/EllipticalMesher.h
 //Author	:Tanabe Yuta
 //Date		:2019/04/16
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
 
+#pragma once
+#include <vector>
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
-#include "EllipticalMesher.h"
+
+
+#include "Point.h"
+
+
+class EllipticalMesher
+{
+public:
+	EllipticalMesher();
+	~EllipticalMesher();
+	EllipticalMesher(int, int);
+	   
+	
+	void SetBoundaryPoint(int, Point);		//ï¿½ï¿½ï¿½Eï¿½ï¿½Ì“_ï¿½ï¿½Ç‰ï¿½
+	void MakeMesh();						//ï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	void ExportToVTK(std::string);			//ï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½\ï¿½ï¿½
+	void ExportForPANSFEM(std::string);		//PANSFEMï¿½Ìƒtï¿½Hï¿½[ï¿½}ï¿½bï¿½gï¿½Éï¿½ï¿½í‚¹ï¿½Äoï¿½ï¿½
+
+
+private:
+	const int inum;							//xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½Wï¿½_ï¿½ï¿½
+	const int jnum;							//yï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½Wï¿½_ï¿½ï¿½
+
+
+	std::vector<Point> pb;					//ï¿½ï¿½ï¿½Eï¿½ï¿½Ì“_
+	std::vector<std::vector<Point>> pin;	//ï¿½ï¿½ï¿½ï¿½ï¿½Ì“_
+
+
+	static const int ITRMAX = 100000;		//ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½oï¿½ÌÅ‘å”½ï¿½ï¿½ï¿½ï¿½
+	const double DEPS = 1.0e-8;				//ï¿½ï¿½ï¿½Wï¿½Ìƒmï¿½ï¿½ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½eï¿½cï¿½ï¿½
+};
 
 
 EllipticalMesher::EllipticalMesher() : inum(0), jnum(0) {}
@@ -30,44 +63,44 @@ void EllipticalMesher::SetBoundaryPoint(int _i, Point _point){
 
 
 void EllipticalMesher::MakeMesh(){
-	//----------DirichletğŒ‚Ìİ’è----------
-	int pbi = 0;		//‹«ŠE‚ÌƒJƒEƒ“ƒ^
-	//.....‰º–Ê.....
+	//----------Dirichletï¿½ï¿½ï¿½ï¿½ï¿½Ìİ’ï¿½----------
+	int pbi = 0;		//ï¿½ï¿½ï¿½Eï¿½ÌƒJï¿½Eï¿½ï¿½ï¿½^
+	//.....ï¿½ï¿½ï¿½ï¿½.....
 	for (int i = 0; i < this->inum - 1; i++, pbi++) {
 		this->pin[i][0] = this->pb[pbi];
 	}
-	//.....‰E–Ê.....
+	//.....ï¿½Eï¿½ï¿½.....
 	for (int i = 0; i < this->jnum - 1; i++, pbi++) {
 		this->pin[this->inum - 1][i] = this->pb[pbi];
 	}
-	//.....ã–Ê.....
+	//.....ï¿½ï¿½ï¿½.....
 	for (int i = this->inum - 1; i > 0; i--, pbi++) {
 		this->pin[i][this->jnum - 1] = this->pb[pbi];
 	}
-	//.....¶–Ê.....
+	//.....ï¿½ï¿½ï¿½ï¿½.....
 	for (int i = this->jnum - 1; i > 0; i--, pbi++) {
 		this->pin[0][i] = this->pb[pbi];
 	}
 
-	//----------Laplace•û’ö®‚Ì‹‰ğ----------
+	//----------Laplaceï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½ï¿½----------
 	for (int k = 0; k < this->ITRMAX; k++) {
 		double dxmax = 0.0;
 		std::cout << "iteration = " << k + 1;
 
 		for (int i = 1; i < this->inum - 1; i++) {
 			for (int j = 1; j < this->jnum - 1; j++) {
-				//.....Laplace•û’ö®‚ÌŒW”‚ğŒvZ.....
+				//.....Laplaceï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌŒWï¿½ï¿½ï¿½ï¿½ï¿½vï¿½Z.....
 				Point xxi = 0.5*(this->pin[i + 1][j] - this->pin[i - 1][j]);
 				Point xiota = 0.5*(this->pin[i][j + 1] - this->pin[i][j - 1]);
 				double alpha = pow(xiota.x[0], 2.0) + pow(xiota.x[1], 2.0);
 				double beta = xxi.x[0] * xiota.x[0] + xxi.x[1] * xiota.x[1];
 				double ganma = pow(xxi.x[0], 2.0) + pow(xxi.x[1], 2.0);
 
-				//.....À•W‚ğXV.....
+				//.....ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Xï¿½V.....
 				Point tmp = this->pin[i][j];
 				this->pin[i][j] = 0.5*(alpha*(this->pin[i + 1][j] + this->pin[i - 1][j]) - 0.5*beta*(this->pin[i + 1][j + 1] - this->pin[i - 1][j + 1] - this->pin[i + 1][j - 1] + this->pin[i - 1][j - 1]) + ganma * (this->pin[i][j + 1] + this->pin[i][j - 1])) / (alpha + ganma);
 				
-				//.....À•W‘•ª‚Ìƒmƒ‹ƒ€‚ÌÅ‘å’l‚ğXV.....
+				//.....ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½Ìƒmï¿½ï¿½ï¿½ï¿½ï¿½ÌÅ‘ï¿½lï¿½ï¿½ï¿½Xï¿½V.....
 				double dxtmp = (tmp - this->pin[i][j]).Norm();
 				if (dxmax < dxtmp) {
 					dxmax = dxtmp;
@@ -76,7 +109,7 @@ void EllipticalMesher::MakeMesh(){
 		}
 		std::cout << "\t" << dxmax << "\n";
 
-		//.....û‘©”»’è.....
+		//.....ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.....
 		if (dxmax < DEPS) {
 			std::cout << "Converged:k = " << k + 1;
 			break;
@@ -88,13 +121,13 @@ void EllipticalMesher::MakeMesh(){
 void EllipticalMesher::ExportToVTK(std::string _fname){
 	std::ofstream fout(_fname + ".vtk");
 	
-	//----------Header‚Ìo—Í----------
+	//----------Headerï¿½Ìoï¿½ï¿½----------
 	fout << "# vtk DataFile Version 4.1\n";
 	fout << "vtk output\n";
 	fout << "ASCII\n";
 	fout << "DATASET UNSTRUCTURED_GRID\n";
 
-	//----------“_‚Ì’Ç‰Á----------
+	//----------ï¿½_ï¿½Ì’Ç‰ï¿½----------
 	fout << "\nPOINTS\t" << this->inum * this->jnum << "\tfloat\n";
 	for (auto pinrow : this->pin) {
 		for (auto pinone : pinrow) {
@@ -102,7 +135,7 @@ void EllipticalMesher::ExportToVTK(std::string _fname){
 		}
 	}
 
-	//----------—v‘f‚Ì’Ç‰Á----------
+	//----------ï¿½vï¿½fï¿½Ì’Ç‰ï¿½----------
 	fout << "\nCELLS " << (this->inum - 1)*(this->jnum - 1) << "\t" << (this->inum - 1)*(this->jnum - 1) * 5 << "\n";
 	for (int i = 0; i < this->inum - 1; i++) {
 		for (int j = 0; j < this->jnum - 1; j++) {
@@ -110,7 +143,7 @@ void EllipticalMesher::ExportToVTK(std::string _fname){
 		}
 	}
 
-	//----------—v‘fƒ^ƒCƒv‚Ìİ’è----------
+	//----------ï¿½vï¿½fï¿½^ï¿½Cï¿½vï¿½Ìİ’ï¿½----------
 	fout << "\nCELL_TYPES\t" << (this->inum - 1)*(this->jnum - 1) << "\n";
 	for (int i = 0; i < (this->inum - 1)*(this->jnum - 1); i++) {
 		fout << "9\n";
@@ -121,13 +154,13 @@ void EllipticalMesher::ExportToVTK(std::string _fname){
 
 
 void EllipticalMesher::ExportForPANSFEM(std::string _fnameheader){
-	//----------Node‚Ìo—Í----------
+	//----------Nodeï¿½Ìoï¿½ï¿½----------
 	std::ofstream fout_node(_fnameheader + "_Node.csv");
 
-	//.....Header‚Ìo—Í.....
+	//.....Headerï¿½Ìoï¿½ï¿½.....
 	fout_node << "ID,DOX,x0,x1";
 
-	//.....À•W‚ğo—Í.....
+	//.....ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½oï¿½ï¿½.....
 	for (int i = 0; i < this->inum; i++) {
 		for (int j = 0; j < this->jnum; j++) {
 			fout_node << std::endl << i * (this->jnum) + j << "," << "2" << "," << this->pin[i][j].x[0] << "," << this->pin[i][j].x[1];
@@ -136,13 +169,13 @@ void EllipticalMesher::ExportForPANSFEM(std::string _fnameheader){
 
 	fout_node.close();
 
-	//----------Element‚Ìo—Í----------
+	//----------Elementï¿½Ìoï¿½ï¿½----------
 	std::ofstream fout_element(_fnameheader + "_Element.csv");
 
-	//.....Header‚Ìo—Í.....
+	//.....Headerï¿½Ìoï¿½ï¿½.....
 	fout_element << "ID,NON,n0,n1,n2,n3";
 
-	//.....ß“_”Ô†‚ğo—Í.....
+	//.....ï¿½ß“_ï¿½Ôï¿½ï¿½ï¿½ï¿½oï¿½ï¿½.....
 	for (int i = 0; i < this->inum - 1; i++) {
 		for (int j = 0; j < this->jnum - 1; j++) {
 			fout_element << std::endl << i * (this->jnum - 1) + j << "," << "4" << "," << i * (this->jnum) + j << "," << (i + 1)*(this->jnum) + j << "," << (i + 1)*(this->jnum) + j + 1 << "," << i * (this->jnum) + j + 1;
