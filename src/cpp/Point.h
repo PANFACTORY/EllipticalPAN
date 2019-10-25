@@ -1,7 +1,7 @@
 //*****************************************************************************
-//Title		:EllipticalMesher/Point.h
+//Title		:src/cpp/Point.h
 //Author	:Tanabe Yuta
-//Date		:2019/04/16
+//Date		:2019/10/25
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
@@ -11,72 +11,76 @@
 #include <cmath>
 
 
-class Point
-{
+namespace EllipticalPAN{
+	template<class T>
+	class Point
+	{
 public:
-	Point();
-	~Point();
-	Point(double, double);
-
-	std::array<double, 2> x;
-
-	Point operator+(const Point &);		//�x�N�g���̘a
-	Point operator-(const Point &);		//�x�N�g���̍�
-	Point operator*(const double &);	//�x�N�g���̎����{
-	Point operator/(const double &);	//�x�N�g���̎�����
-
-	double Norm();						//�x�N�g���̃m�������v�Z
-};
+		Point();
+		~Point();
+		Point(T _x, T _y);
 
 
-Point operator*(const double &, const Point &);
+		std::array<T, 2> x;
 
 
-Point operator/(const double &, const Point &);
+		Point<T> operator+(const Point<T>& _point);		
+		Point<T> operator-(const Point<T>& _point);		
+		Point<T> operator*(T _a);	
+		Point<T> operator/(T _a);	
 
 
-Point::Point(){}
+		T Norm();						
+	};
 
 
-Point::~Point(){}
+	template<class T>
+	Point<T>::Point(){}
 
 
-Point::Point(double _x, double _y){
-	this->x[0] = _x;
-	this->x[1] = _y;
-}
+	template<class T>
+	Point<T>::~Point(){}
 
 
-Point Point::operator+(const Point &_point){
-	return Point(this->x[0] + _point.x[0], this->x[1] + _point.x[1]);
-}
+	template<class T>
+	Point<T>::Point(T _x, T _y){
+		this->x[0] = _x;
+		this->x[1] = _y;
+	}
 
 
-Point Point::operator-(const Point &_point) {
-	return Point(this->x[0] - _point.x[0], this->x[1] - _point.x[1]);
-}
+	template<class T>
+	Point<T> Point<T>::operator+(const Point<T> &_point){
+		return Point<T>(this->x[0] + _point.x[0], this->x[1] + _point.x[1]);
+	}
 
 
-Point Point::operator*(const double &a){
-	return Point(this->x[0] * a, this->x[1] * a);
-}
+	template<class T>
+	Point<T> Point<T>::operator-(const Point<T> &_point) {
+		return Point<T>(this->x[0] - _point.x[0], this->x[1] - _point.x[1]);
+	}
 
 
-Point operator*(const double &a, const Point& _point) {
-	return Point(_point.x[0] * a, _point.x[1] * a);
-}
+	template<class T>
+	Point<T> Point<T>::operator*(T _a){
+		return Point<T>(this->x[0] * _a, this->x[1] * _a);
+	}
 
 
-Point Point::operator/(const double &b){
-	return Point(this->x[0] / b, this->x[1] / b);
-}
+	template<class T>
+	Point<T> Point<T>::operator/(T _a){
+		return Point<T>(this->x[0] / _a, this->x[1] / _a);
+	}
 
 
-Point operator/(const double &b, const Point& _point) {
-	return Point(_point.x[0] / b, _point.x[1] / b);
-}
+	template<class T>
+	T Point<T>::Norm(){
+		return sqrt(pow(this->x[0], 2.0) + pow(this->x[1], 2.0));
+	}
 
 
-double Point::Norm(){
-	return sqrt(pow(this->x[0], 2.0) + pow(this->x[1], 2.0));
+	template<class T>
+	Point<T> operator*(T _a, const Point<T>& _point) {
+		return Point<T>(_point.x[0] * _a, _point.x[1] * _a);
+	}
 }

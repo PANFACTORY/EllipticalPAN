@@ -1,7 +1,7 @@
 //*****************************************************************************
-//Title		:EllipticalMesher/main.cpp
+//Title		:src/cpp/main.cpp
 //Author	:Tanabe Yuta
-//Date		:2019/04/16
+//Date		:2019/10/25
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
@@ -11,17 +11,19 @@
 #include "EllipticalMesher.h"
 #include "Point.h"
 
-int main() {
-	EllipticalMesher Mesh(50, 199);		//���b�V���[�I�u�W�F�N�g
 
-	Point P0(0.0, 0.0);
-	Point P1(4.0, 0.0);
-	Point P2(4.0, 4.0);
-	Point P3(6.0, 6.0);
-	Point P4(10.0, 6.0);
-	Point P5(10.0, 10.0);
-	Point P6(6.0, 10.0);
-	Point P7(0.0, 4.0);
+using namespace EllipticalPAN;
+int main() {
+	EllipticalMesher<double> Mesh(50, 199, 1.0e-8);		
+
+	Point<double> P0(0.0, 0.0);
+	Point<double> P1(4.0, 0.0);
+	Point<double> P2(4.0, 4.0);
+	Point<double> P3(6.0, 6.0);
+	Point<double> P4(10.0, 6.0);
+	Point<double> P5(10.0, 10.0);
+	Point<double> P6(6.0, 10.0);
+	Point<double> P7(0.0, 4.0);
 
 	int ipb = 0;
 	for (int i = 0; i < 49; i++, ipb++) {
@@ -31,7 +33,7 @@ int main() {
 		Mesh.SetBoundaryPoint(ipb, P1 + (P2 - P1)*i / 49);
 	}
 	for (int i = 0; i < 100; i++, ipb++) {
-		Mesh.SetBoundaryPoint(ipb, P2 + Point(2.0*(1.0 - cos(0.5*M_PI*i / 100)), 2.0*sin(0.5*M_PI*i / 100)));
+		Mesh.SetBoundaryPoint(ipb, P2 + Point<double>(2.0*(1.0 - cos(0.5*M_PI*i / 100)), 2.0*sin(0.5*M_PI*i / 100)));
 	}
 	for (int i = 0; i < 49; i++, ipb++) {
 		Mesh.SetBoundaryPoint(ipb, P3 + (P4 - P3)*i / 49);
@@ -43,14 +45,14 @@ int main() {
 		Mesh.SetBoundaryPoint(ipb, P5 + (P6 - P5)*i / 49);
 	}
 	for (int i = 0; i < 100; i++, ipb++) {
-		Mesh.SetBoundaryPoint(ipb, P6 + Point(-6.0*sin(0.5*M_PI*i / 100), -6.0*(1.0 - cos(0.5*M_PI*i / 100))));
+		Mesh.SetBoundaryPoint(ipb, P6 + Point<double>(-6.0*sin(0.5*M_PI*i / 100), -6.0*(1.0 - cos(0.5*M_PI*i / 100))));
 	}
 	for (int i = 0; i < 49; i++, ipb++) {
 		Mesh.SetBoundaryPoint(ipb, P7 + (P0 - P7)*i / 49);
 	}
 
-	Mesh.MakeMesh();					//���b�V������
-	Mesh.ExportToVTK("mesh");			//VTK�t�@�C���ɏo��
+	Mesh.MakeMesh();					
+	Mesh.ExportToVTK("mesh");			
 	Mesh.ExportForPANSFEM("mesh");
 	return 0;
 }
