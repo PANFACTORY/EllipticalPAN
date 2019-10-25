@@ -1,7 +1,7 @@
 //*****************************************************************************
-//Title		:EllipticalMesher/EllipticalMesher.h
+//Title		:src/cpp/EllipticalMesher.h
 //Author	:Tanabe Yuta
-//Date		:2019/04/16
+//Date		:2019/10/25
 //Copyright	:(C)2019 TanabeYuta
 //*****************************************************************************
 
@@ -18,99 +18,105 @@
 
 
 namespace EllipticalPAN{
+	template<class T>
 	class EllipticalMesher
 	{
 public:
 		EllipticalMesher();
 		~EllipticalMesher();
-		EllipticalMesher(int, int);
+		EllipticalMesher(int _inum, int _jnum, T _DEPS);
 		
 		
-		void SetBoundaryPoint(int, Point);		//���E��̓_��ǉ�
-		void MakeMesh();						//���b�V������
-		void ExportToVTK(std::string);			//���b�V���\��
-		void ExportForPANSFEM(std::string);		//PANSFEM�̃t�H�[�}�b�g�ɍ��킹�ďo��
+		void SetBoundaryPoint(int, Point<T>);		
+		void MakeMesh();						
+		void ExportToVTK(std::string);			
+		void ExportForPANSFEM(std::string);		
 
 
-	private:
-		const int inum;							//x�������̍��W�_��
-		const int jnum;							//y�������̍��W�_��
+private:
+		const int inum;							
+		const int jnum;						
 
 
-		std::vector<Point> pb;					//���E��̓_
-		std::vector<std::vector<Point>> pin;	//�����̓_
+		std::vector<Point<T> > pb;					
+		std::vector<std::vector<Point<T> > > pin;	
 
 
-		static const int ITRMAX = 100000;		//�A���������\���o�̍ő唽����
-		const double DEPS = 1.0e-8;				//���W�̃m�����̋��e�c��
+		static const int ITRMAX = 100000;		
+		const T DEPS;				
 	};
 
 
-	EllipticalMesher::EllipticalMesher() : inum(0), jnum(0) {}
+	template<class T>
+	EllipticalMesher<T>::EllipticalMesher() : inum(0), jnum(0), DEPS(T()) {}
 
 
-	EllipticalMesher::~EllipticalMesher(){}
+	template<class T>
+	EllipticalMesher<T>::~EllipticalMesher(){}
 
 
-	EllipticalMesher::EllipticalMesher(int _inum, int _jnum) : inum(_inum), jnum(_jnum){
-		this->pb = std::vector<Point>(2 * (this->inum + this->jnum - 2));
-		this->pin = std::vector<std::vector<Point>>(this->inum, std::vector<Point>(this->jnum, Point(0.0, 0.0)));
+	template<class T>
+	EllipticalMesher<T>::EllipticalMesher(int _inum, int _jnum, T _DEPS) : inum(_inum), jnum(_jnum), DEPS(_DEPS){
+		this->pb = std::vector<Point<T> >(2 * (this->inum + this->jnum - 2));
+		this->pin = std::vector<std::vector<Point<T> > >(this->inum, std::vector<Point<T> >(this->jnum, Point<T>(T(), T())));
 	}
 
 
-	void EllipticalMesher::SetBoundaryPoint(int _i, Point _point){
+	template<class T>
+	void EllipticalMesher<T>::SetBoundaryPoint(int _i, Point<T> _point){
 		this->pb[_i] = _point;
 	}
 
 
-	void EllipticalMesher::MakeMesh(){
-		//----------Dirichlet�����̐ݒ�----------
-		int pbi = 0;		//���E�̃J�E���^
-		//.....����.....
+	template<class T>
+	void EllipticalMesher<T>::MakeMesh(){
+		//----------Set Dirichlet condition----------
+		int pbi = 0;
+		//.....Bottom edge.....
 		for (int i = 0; i < this->inum - 1; i++, pbi++) {
 			this->pin[i][0] = this->pb[pbi];
 		}
-		//.....�E��.....
+		//.....Right edge.....
 		for (int i = 0; i < this->jnum - 1; i++, pbi++) {
 			this->pin[this->inum - 1][i] = this->pb[pbi];
 		}
-		//.....���.....
+		//.....Top edge.....
 		for (int i = this->inum - 1; i > 0; i--, pbi++) {
 			this->pin[i][this->jnum - 1] = this->pb[pbi];
 		}
-		//.....����.....
+		//.....Left edge.....
 		for (int i = this->jnum - 1; i > 0; i--, pbi++) {
 			this->pin[0][i] = this->pb[pbi];
 		}
 
-		//----------Laplace�������̋���----------
+		//----------Solve Laplace equation----------
 		for (int k = 0; k < this->ITRMAX; k++) {
-			double dxmax = 0.0;
-			std::cout << "iteration = " << k + 1;
+			T dxmax = T();
+			//std::cout << "iteration = " << k + 1;
 
 			for (int i = 1; i < this->inum - 1; i++) {
 				for (int j = 1; j < this->jnum - 1; j++) {
-					//.....Laplace�������̌W�����v�Z.....
-					Point xxi = 0.5*(this->pin[i + 1][j] - this->pin[i - 1][j]);
-					Point xiota = 0.5*(this->pin[i][j + 1] - this->pin[i][j - 1]);
-					double alpha = pow(xiota.x[0], 2.0) + pow(xiota.x[1], 2.0);
-					double beta = xxi.x[0] * xiota.x[0] + xxi.x[1] * xiota.x[1];
-					double ganma = pow(xxi.x[0], 2.0) + pow(xxi.x[1], 2.0);
+					//.....Make Laplace equation.....
+					Point<T> xxi = 0.5*(this->pin[i + 1][j] - this->pin[i - 1][j]);
+					Point<T> xiota = 0.5*(this->pin[i][j + 1] - this->pin[i][j - 1]);
+					T alpha = pow(xiota.x[0], 2.0) + pow(xiota.x[1], 2.0);
+					T beta = xxi.x[0] * xiota.x[0] + xxi.x[1] * xiota.x[1];
+					T ganma = pow(xxi.x[0], 2.0) + pow(xxi.x[1], 2.0);
 
-					//.....���W���X�V.....
-					Point tmp = this->pin[i][j];
+					//.....Update values.....
+					Point<T> tmp = this->pin[i][j];
 					this->pin[i][j] = 0.5*(alpha*(this->pin[i + 1][j] + this->pin[i - 1][j]) - 0.5*beta*(this->pin[i + 1][j + 1] - this->pin[i - 1][j + 1] - this->pin[i + 1][j - 1] + this->pin[i - 1][j - 1]) + ganma * (this->pin[i][j + 1] + this->pin[i][j - 1])) / (alpha + ganma);
 					
-					//.....���W�����̃m�����̍ő�l���X�V.....
-					double dxtmp = (tmp - this->pin[i][j]).Norm();
+					//.....Get norm maximam.....
+					T dxtmp = (tmp - this->pin[i][j]).Norm();
 					if (dxmax < dxtmp) {
 						dxmax = dxtmp;
 					}
 				}
 			}
-			std::cout << "\t" << dxmax << "\n";
+			//std::cout << "\t" << dxmax << "\n";
 
-			//.....��������.....
+			//.....Check convergence.....
 			if (dxmax < DEPS) {
 				std::cout << "Converged:k = " << k + 1;
 				break;
@@ -119,7 +125,8 @@ public:
 	}
 
 
-	void EllipticalMesher::ExportToVTK(std::string _fname){
+	template<class T>
+	void EllipticalMesher<T>::ExportToVTK(std::string _fname){
 		std::ofstream fout(_fname + ".vtk");
 		
 		//----------Header�̏o��----------
@@ -154,7 +161,8 @@ public:
 	}
 
 
-	void EllipticalMesher::ExportForPANSFEM(std::string _fnameheader){
+	template<class T>
+	void EllipticalMesher<T>::ExportForPANSFEM(std::string _fnameheader){
 		//----------Node�̏o��----------
 		std::ofstream fout_node(_fnameheader + "_Node.csv");
 
