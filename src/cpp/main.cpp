@@ -11,6 +11,8 @@
 #include "EllipticalMesher.h"
 #include "Point.h"
 
+
+using namespace EllipticalPAN;
 int main() {
 	EllipticalMesher Mesh(50, 199);		//���b�V���[�I�u�W�F�N�g
 
