@@ -9,6 +9,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 #include "../src/mesher.h"
 #include "../src/point.h"
@@ -80,6 +81,9 @@ int main() {
     }
 
     std::cout << "Converged at " << Mesh.Generate() << std::endl;
-    Mesh.ExportToVTK("sample/mesh");
+
+    std::ofstream fout("sample/mesh.vtk");
+    Mesh.ExportAsVTK(fout);
+    fout.close();
     return 0;
 }

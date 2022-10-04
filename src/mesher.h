@@ -6,58 +6,55 @@
 //*****************************************************************************
 
 #pragma once
-#include <fstream>
-#include <string>
-#include <vector>
+#include <iostream>
 
 namespace EllipticalPAN {
 template <template <class> class P, class T>
 class Mesher {
    public:
     Mesher() = delete;
-    Mesher(int _inum, int _jnum, T _DEPS = T(1e-8), int _ITRMAX = 100000)
-        : inum(_inum), jnum(_jnum), DEPS(_DEPS), ITRMAX(_ITRMAX) {
-        this->pin = std::vector<P<T> >(this->inum * this->jnum, P<T>());
+    Mesher(int _ni, int _nj, T _DEPS = T(1e-8), int _ITRMAX = 100000)
+        : ni(_ni), nj(_nj), DEPS(_DEPS), ITRMAX(_ITRMAX) {
+        this->p = new P<T>[this->ni * this->nj];
     }
     Mesher(const Mesher<P, T>&) = delete;
-    ~Mesher() {}
+    ~Mesher() { delete[] this->p; }
 
     void SetPoint(int _i, int _j, const P<T>& point) {
-        int i = _i == -1 ? this->inum - 1 : _i,
-            j = _j == -1 ? this->jnum - 1 : _j;
-        this->pin[this->ID(i, j)] = point;
+        int i = _i == -1 ? this->ni - 1 : _i, j = _j == -1 ? this->nj - 1 : _j;
+        this->p[this->ID(i, j)] = point;
     }
     int Generate() {
         //----------Solve Laplace equation----------
         for (int itr = 0; itr < this->ITRMAX; itr++) {
             T dxmax = T();
-            for (int i = 1; i < this->inum - 1; i++) {
-                for (int j = 1; j < this->jnum - 1; j++) {
+            for (int i = 1; i < this->ni - 1; i++) {
+                for (int j = 1; j < this->nj - 1; j++) {
                     //.....Make Laplace equation.....
-                    P<T> xxi = 0.5 * (this->pin[this->ID(i + 1, j)] -
-                                      this->pin[this->ID(i - 1, j)]);
-                    P<T> xiota = 0.5 * (this->pin[this->ID(i, j + 1)] -
-                                        this->pin[this->ID(i, j - 1)]);
+                    P<T> xxi = 0.5 * (this->p[this->ID(i + 1, j)] -
+                                      this->p[this->ID(i - 1, j)]);
+                    P<T> xiota = 0.5 * (this->p[this->ID(i, j + 1)] -
+                                        this->p[this->ID(i, j - 1)]);
                     T alpha = xiota.Dot(xiota) + 1.0e-8;
                     T beta = xxi.Dot(xiota);
                     T ganma = xxi.Dot(xxi) + 1.0e-8;
 
                     //.....Update values.....
-                    P<T> tmp = this->pin[this->ID(i, j)];
-                    this->pin[this->ID(i, j)] =
+                    P<T> tmp = this->p[this->ID(i, j)];
+                    this->p[this->ID(i, j)] =
                         (0.5 / (alpha + ganma)) *
-                        (alpha * (this->pin[this->ID(i + 1, j)] +
-                                  this->pin[this->ID(i - 1, j)]) -
+                        (alpha * (this->p[this->ID(i + 1, j)] +
+                                  this->p[this->ID(i - 1, j)]) -
                          0.5 * beta *
-                             (this->pin[this->ID(i + 1, j + 1)] -
-                              this->pin[this->ID(i - 1, j + 1)] -
-                              this->pin[this->ID(i + 1, j - 1)] +
-                              this->pin[this->ID(i - 1, j - 1)]) +
-                         ganma * (this->pin[this->ID(i, j + 1)] +
-                                  this->pin[this->ID(i, j - 1)]));
+                             (this->p[this->ID(i + 1, j + 1)] -
+                              this->p[this->ID(i - 1, j + 1)] -
+                              this->p[this->ID(i + 1, j - 1)] +
+                              this->p[this->ID(i - 1, j - 1)]) +
+                         ganma * (this->p[this->ID(i, j + 1)] +
+                                  this->p[this->ID(i, j - 1)]));
 
                     //.....Get norm maximam.....
-                    T dxtmp = (tmp - this->pin[this->ID(i, j)]).Norm();
+                    T dxtmp = (tmp - this->p[this->ID(i, j)]).Norm();
                     if (dxmax < dxtmp) {
                         dxmax = dxtmp;
                     }
@@ -70,51 +67,50 @@ class Mesher {
         }
         return this->ITRMAX;
     }
-    void ExportToVTK(std::string _fname) {
-        std::ofstream fout(_fname + ".vtk");
-
+    void ExportAsVTK(std::ostream& fout) {
         //----------Headers----------
-        fout << "# vtk DataFile Version 4.1\n";
-        fout << "vtk output\n";
-        fout << "ASCII\n";
-        fout << "DATASET UNSTRUCTURED_GRID\n";
+        fout << "# vtk DataFile Version 4.1" << std::endl;
+        fout << "vtk output" << std::endl;
+        fout << "ASCII" << std::endl;
+        fout << "DATASET UNSTRUCTURED_GRID" << std::endl;
 
         //----------Points----------
-        fout << "\nPOINTS\t" << this->inum * this->jnum << "\tfloat\n";
-        for (int i = 0; i < this->inum; i++) {
-            for (int j = 0; j < this->jnum; j++) {
-                fout << this->pin[this->ID(i, j)][0] << "\t"
-                     << this->pin[this->ID(i, j)][1] << "\t" << 0.0 << "\n";
+        fout << std::endl
+             << "POINTS\t" << this->ni * this->nj << "\tfloat" << std::endl;
+        for (int i = 0; i < this->ni; i++) {
+            for (int j = 0; j < this->nj; j++) {
+                fout << this->p[this->ID(i, j)][0] << "\t"
+                     << this->p[this->ID(i, j)][1] << "\t" << 0.0 << std::endl;
             }
         }
 
         //----------Cells----------
-        fout << "\nCELLS " << (this->inum - 1) * (this->jnum - 1) << "\t"
-             << (this->inum - 1) * (this->jnum - 1) * 5 << "\n";
-        for (int i = 0; i < this->inum - 1; i++) {
-            for (int j = 0; j < this->jnum - 1; j++) {
-                fout << "4 " << i * (this->jnum) + j << "\t"
-                     << i * (this->jnum) + j + 1 << "\t"
-                     << (i + 1) * (this->jnum) + j + 1 << "\t"
-                     << (i + 1) * (this->jnum) + j << "\n";
+        fout << std::endl
+             << "CELLS " << (this->ni - 1) * (this->nj - 1) << "\t"
+             << (this->ni - 1) * (this->nj - 1) * 5 << std::endl;
+        for (int i = 0; i < this->ni - 1; i++) {
+            for (int j = 0; j < this->nj - 1; j++) {
+                fout << "4 " << i * (this->nj) + j << "\t"
+                     << i * (this->nj) + j + 1 << "\t"
+                     << (i + 1) * (this->nj) + j + 1 << "\t"
+                     << (i + 1) * (this->nj) + j << std::endl;
             }
         }
 
         //----------Cell types----------
-        fout << "\nCELL_TYPES\t" << (this->inum - 1) * (this->jnum - 1) << "\n";
-        for (int i = 0; i < (this->inum - 1) * (this->jnum - 1); i++) {
-            fout << "9\n";
+        fout << std::endl
+             << "CELL_TYPES\t" << (this->ni - 1) * (this->nj - 1) << std::endl;
+        for (int i = 0; i < (this->ni - 1) * (this->nj - 1); i++) {
+            fout << "9" << std::endl;
         }
-
-        fout.close();
     }
 
    private:
-    const int inum, jnum, ITRMAX;
+    const int ni, nj, ITRMAX;
     const T DEPS;
 
-    std::vector<P<T> > pin;
+    P<T>* p;
 
-    int ID(int i, int j) const { return i + this->inum * j; }
+    int ID(int i, int j) const { return i + this->ni * j; }
 };
 }  // namespace EllipticalPAN
