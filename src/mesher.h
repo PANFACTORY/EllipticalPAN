@@ -7,47 +7,43 @@
 
 #pragma once
 #include <fstream>
-#include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
-#include "point.h"
-
 namespace EllipticalPAN {
-template <class T>
+template <template <class> class P, class T>
 class Mesher {
    public:
     Mesher() = delete;
     Mesher(int _inum, int _jnum, T _DEPS = T(1e-8), int _ITRMAX = 100000)
         : inum(_inum), jnum(_jnum), DEPS(_DEPS), ITRMAX(_ITRMAX) {
-        this->pin = std::vector<Point<T> >(this->inum * this->jnum, Point<T>());
+        this->pin = std::vector<P<T> >(this->inum * this->jnum, P<T>());
     }
-    Mesher(const Mesher<T>&) = delete;
+    Mesher(const Mesher<P, T>&) = delete;
     ~Mesher() {}
 
-    void SetPoint(int _i, int _j, const Point<T>& point) {
+    void SetPoint(int _i, int _j, const P<T>& point) {
         int i = _i == -1 ? this->inum - 1 : _i,
             j = _j == -1 ? this->jnum - 1 : _j;
         this->pin[this->ID(i, j)] = point;
     }
-    void Generate() {
+    int Generate() {
         //----------Solve Laplace equation----------
-        for (int k = 0; k < this->ITRMAX; k++) {
+        for (int itr = 0; itr < this->ITRMAX; itr++) {
             T dxmax = T();
             for (int i = 1; i < this->inum - 1; i++) {
                 for (int j = 1; j < this->jnum - 1; j++) {
                     //.....Make Laplace equation.....
-                    Point<T> xxi = 0.5 * (this->pin[this->ID(i + 1, j)] -
-                                          this->pin[this->ID(i - 1, j)]);
-                    Point<T> xiota = 0.5 * (this->pin[this->ID(i, j + 1)] -
-                                            this->pin[this->ID(i, j - 1)]);
+                    P<T> xxi = 0.5 * (this->pin[this->ID(i + 1, j)] -
+                                      this->pin[this->ID(i - 1, j)]);
+                    P<T> xiota = 0.5 * (this->pin[this->ID(i, j + 1)] -
+                                        this->pin[this->ID(i, j - 1)]);
                     T alpha = xiota.Dot(xiota) + 1.0e-8;
                     T beta = xxi.Dot(xiota);
                     T ganma = xxi.Dot(xxi) + 1.0e-8;
 
                     //.....Update values.....
-                    Point<T> tmp = this->pin[this->ID(i, j)];
+                    P<T> tmp = this->pin[this->ID(i, j)];
                     this->pin[this->ID(i, j)] =
                         (0.5 / (alpha + ganma)) *
                         (alpha * (this->pin[this->ID(i + 1, j)] +
@@ -69,10 +65,10 @@ class Mesher {
             }
             //.....Check convergence.....
             if (dxmax < DEPS) {
-                std::cout << "Converged:k = " << k + 1;
-                break;
+                return itr + 1;
             }
         }
+        return this->ITRMAX;
     }
     void ExportToVTK(std::string _fname) {
         std::ofstream fout(_fname + ".vtk");
@@ -117,7 +113,7 @@ class Mesher {
     const int inum, jnum, ITRMAX;
     const T DEPS;
 
-    std::vector<Point<T> > pin;
+    std::vector<P<T> > pin;
 
     int ID(int i, int j) const { return i + this->inum * j; }
 };
