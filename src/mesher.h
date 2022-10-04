@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "Point.h"
+#include "point.h"
 
 namespace EllipticalPAN {
 template <class T>

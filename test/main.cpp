@@ -10,8 +10,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "../src/EllipticalMesher.h"
-#include "../src/Point.h"
+#include "../src/mesher.h"
+#include "../src/point.h"
 
 using namespace EllipticalPAN;
 int main() {
