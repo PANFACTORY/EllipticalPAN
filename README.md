@@ -1,1 +1,3 @@
 # EllipticalPAN
+
+![](docs/mesh.jpeg)

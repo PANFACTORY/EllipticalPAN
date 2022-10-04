@@ -11,6 +11,9 @@
 namespace EllipticalPAN {
 template <class T>
 class Point {
+    template <class U>
+    friend std::ostream& operator<<(std::ostream& out, const Point<U>& point);
+
    public:
     Point() {
         this->x[0] = T();
@@ -90,7 +93,7 @@ class Point {
 
 template <class U>
 inline std::ostream& operator<<(std::ostream& out, const Point<U>& point) {
-    out << point[0] << std::endl << point[1] << std::endl;
+    out << point.x[0] << " " << point.x[1] << std::endl;
     return out;
 }
 

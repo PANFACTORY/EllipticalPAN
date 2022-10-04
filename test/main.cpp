@@ -7,6 +7,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <fstream>
 #include <iostream>
 
 #include "../src/EllipticalMesher.h"
@@ -14,47 +15,68 @@
 
 using namespace EllipticalPAN;
 int main() {
-    EllipticalMesher<double> Mesh(50, 199, 1.0e-8);
+    const double height = 2.0, width = 10.0, lead_offset = 0.5;
+    const int trail_num = 70, thick_num = 30, lead_num = 77;
 
-    Point<double> P0(0.0, 0.0);
-    Point<double> P1(4.0, 0.0);
-    Point<double> P2(4.0, 4.0);
-    Point<double> P3(6.0, 6.0);
-    Point<double> P4(10.0, 6.0);
-    Point<double> P5(10.0, 10.0);
-    Point<double> P6(6.0, 10.0);
-    Point<double> P7(0.0, 4.0);
+    std::ifstream ifs("sample/NACA4412.dat");
+    if (!ifs) {
+        std::exit(1);
+    }
+    std::vector<Point<double>> FoilPoints(0);
+    while (!ifs.eof()) {
+        double x, y;
+        ifs >> x >> y;
+        FoilPoints.push_back(Point<double>(x, y));
+    }
+
+    int foil_num = FoilPoints.size(),
+        side_num = trail_num + (foil_num - lead_num) / 2;
+
+    EllipticalMesher<double> Mesh(foil_num + trail_num * 2, thick_num, 1.0e-8);
+
+    Point<double> P0(width, 0.0);
+    Point<double> P1(width, height);
+    Point<double> P2(lead_offset, height);
+    Point<double> P3(lead_offset, -height);
+    Point<double> P4(width, -height);
 
     int ipb = 0;
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P0 + (P1 - P0) * (double)(i / 49.0));
+    for (int i = 0; i < trail_num; i++, ipb++) {
+        Mesh.SetBoundaryPoint(ipb, P0 + (FoilPoints[foil_num - 1] - P0) *
+                                            (double)(i / (double)trail_num));
     }
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P1 + (P2 - P1) * (double)(i / 49.0));
+    for (int i = foil_num - 1; i >= 0; i--, ipb++) {
+        Mesh.SetBoundaryPoint(ipb, FoilPoints[i]);
     }
-    for (int i = 0; i < 100; i++, ipb++) {
+    for (int i = 0; i < trail_num - 1; i++, ipb++) {
         Mesh.SetBoundaryPoint(
-            ipb, P2 + Point<double>(2.0 * (1.0 - cos(0.5 * M_PI * i / 100)),
-                                    2.0 * sin(0.5 * M_PI * i / 100)));
+            ipb, FoilPoints[0] + (P0 - FoilPoints[0]) *
+                                     (double)((i + 1) / (double)trail_num));
     }
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P3 + (P4 - P3) * (double)(i / 49.0));
-    }
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P4 + (P5 - P4) * (double)(i / 49.0));
-    }
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P5 + (P6 - P5) * (double)(i / 49.0));
-    }
-    for (int i = 0; i < 100; i++, ipb++) {
+    for (int i = 0; i < thick_num - 1; i++, ipb++) {
         Mesh.SetBoundaryPoint(
-            ipb, P6 + Point<double>(-6.0 * sin(0.5 * M_PI * i / 100),
-                                    -6.0 * (1.0 - cos(0.5 * M_PI * i / 100))));
+            ipb, P0 + (P1 - P0) * (double)(i / (double)(thick_num - 1)));
     }
-    for (int i = 0; i < 49; i++, ipb++) {
-        Mesh.SetBoundaryPoint(ipb, P7 + (P0 - P7) * (double)(i / 49.0));
+    for (int i = 0; i < side_num; i++, ipb++) {
+        Mesh.SetBoundaryPoint(ipb,
+                              P1 + (P2 - P1) * (double)(i / (double)side_num));
     }
-
+    for (int i = 0; i < lead_num; i++, ipb++) {
+        Mesh.SetBoundaryPoint(
+            ipb,
+            Point<double>(
+                lead_offset -
+                    height * sin(M_PI * (double)(i / (double)(lead_num - 1))),
+                height * cos(M_PI * (double)(i / (double)(lead_num - 1)))));
+    }
+    for (int i = 0; i < side_num - 1; i++, ipb++) {
+        Mesh.SetBoundaryPoint(
+            ipb, P3 + (P4 - P3) * (double)((i + 1) / (double)side_num));
+    }
+    for (int i = 0; i < thick_num - 1; i++, ipb++) {
+        Mesh.SetBoundaryPoint(
+            ipb, P4 + (P0 - P4) * (double)(i / (double)(thick_num - 1)));
+    }
     Mesh.MakeMesh();
     Mesh.ExportToVTK("sample/mesh");
     return 0;

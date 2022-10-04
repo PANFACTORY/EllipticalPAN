@@ -90,9 +90,9 @@ void EllipticalMesher<T>::MakeMesh() {
                     0.5 * (this->pin[i + 1][j] - this->pin[i - 1][j]);
                 Point<T> xiota =
                     0.5 * (this->pin[i][j + 1] - this->pin[i][j - 1]);
-                T alpha = xiota.Dot(xiota);
+                T alpha = xiota.Dot(xiota) + 1.0e-8;
                 T beta = xxi.Dot(xiota);
-                T ganma = xxi.Dot(xxi);
+                T ganma = xxi.Dot(xxi) + 1.0e-8;
 
                 //.....Update values.....
                 Point<T> tmp = this->pin[i][j];
