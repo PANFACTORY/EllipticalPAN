@@ -21,34 +21,18 @@ class Mesher {
     Mesher() = delete;
     Mesher(int _inum, int _jnum, T _DEPS = T(1e-8), int _ITRMAX = 100000)
         : inum(_inum), jnum(_jnum), DEPS(_DEPS), ITRMAX(_ITRMAX) {
-        this->pb = std::vector<Point<T> >(2 * (this->inum + this->jnum - 2));
         this->pin = std::vector<std::vector<Point<T> > >(
             this->inum, std::vector<Point<T> >(this->jnum, Point<T>(T(), T())));
     }
     Mesher(const Mesher<T>&) = delete;
     ~Mesher() {}
 
-    void SetPoint(int i, const Point<T>& point) { this->pb[i] = point; }
+    void SetPoint(int _i, int _j, const Point<T>& point) {
+        int i = _i == -1 ? this->inum - 1 : _i,
+            j = _j == -1 ? this->jnum - 1 : _j;
+        this->pin[i][j] = point;
+    }
     void Generate() {
-        //----------Set Dirichlet condition----------
-        int pbi = 0;
-        //.....Bottom edge.....
-        for (int i = 0; i < this->inum - 1; i++, pbi++) {
-            this->pin[i][0] = this->pb[pbi];
-        }
-        //.....Right edge.....
-        for (int i = 0; i < this->jnum - 1; i++, pbi++) {
-            this->pin[this->inum - 1][i] = this->pb[pbi];
-        }
-        //.....Top edge.....
-        for (int i = this->inum - 1; i > 0; i--, pbi++) {
-            this->pin[i][this->jnum - 1] = this->pb[pbi];
-        }
-        //.....Left edge.....
-        for (int i = this->jnum - 1; i > 0; i--, pbi++) {
-            this->pin[0][i] = this->pb[pbi];
-        }
-
         //----------Solve Laplace equation----------
         for (int k = 0; k < this->ITRMAX; k++) {
             T dxmax = T();
@@ -130,7 +114,6 @@ class Mesher {
    private:
     const int inum, jnum;
 
-    std::vector<Point<T> > pb;
     std::vector<std::vector<Point<T> > > pin;
 
     const int ITRMAX;

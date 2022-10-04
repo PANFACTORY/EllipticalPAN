@@ -41,39 +41,42 @@ int main() {
 
     int ipb = 0;
     for (int i = 0; i < trail_num; i++, ipb++) {
-        Mesh.SetPoint(ipb, P0 + (PF[foil_num - 1] - P0) *
-                                    (double)(i / (double)trail_num));
+        Mesh.SetPoint(
+            ipb, 0,
+            P0 + (PF[foil_num - 1] - P0) * (double)(i / (double)trail_num));
     }
     for (int i = foil_num - 1; i >= 0; i--, ipb++) {
-        Mesh.SetPoint(ipb, PF[i]);
+        Mesh.SetPoint(ipb, 0, PF[i]);
     }
-    for (int i = 0; i < trail_num - 1; i++, ipb++) {
+    for (int i = 0; i < trail_num; i++, ipb++) {
         Mesh.SetPoint(
-            ipb, PF[0] + (P0 - PF[0]) * (double)((i + 1) / (double)trail_num));
+            ipb, 0,
+            PF[0] + (P0 - PF[0]) * (double)((i + 1) / (double)trail_num));
     }
-
-    for (int i = 0; i < thick_num - 1; i++, ipb++) {
-        Mesh.SetPoint(ipb,
+    ipb = 0;
+    for (int i = 0; i < thick_num; i++, ipb++) {
+        Mesh.SetPoint(-1, ipb,
                       P0 + (P1 - P0) * (double)(i / (double)(thick_num - 1)));
     }
-
+    ipb = 0;
     for (int i = 0; i < side_num; i++, ipb++) {
-        Mesh.SetPoint(ipb, P1 + (P2 - P1) * (double)(i / (double)side_num));
+        Mesh.SetPoint(ipb, -1, P4 + (P3 - P4) * (double)(i / (double)side_num));
     }
     for (int i = 0; i < lead_num; i++, ipb++) {
         Mesh.SetPoint(
-            ipb, Point<double>(
-                     offset - height * sin(M_PI * i / (double)(lead_num - 1)),
-                     height * cos(M_PI * i / (double)lead_num - 1)));
+            ipb, -1,
+            Point<double>(
+                offset - height * sin(M_PI * i / (double)(lead_num - 1)),
+                -height * cos(M_PI * i / (double)(lead_num - 1))));
     }
-    for (int i = 0; i < side_num - 1; i++, ipb++) {
-        Mesh.SetPoint(ipb,
-                      P3 + (P4 - P3) * (double)((i + 1) / (double)side_num));
+    for (int i = 0; i < side_num; i++, ipb++) {
+        Mesh.SetPoint(ipb, -1,
+                      P2 + (P1 - P2) * (double)((i + 1) / (double)side_num));
     }
-
-    for (int i = 0; i < thick_num - 1; i++, ipb++) {
-        Mesh.SetPoint(ipb,
-                      P4 + (P0 - P4) * (double)(i / (double)(thick_num - 1)));
+    ipb = 0;
+    for (int i = 0; i < thick_num; i++, ipb++) {
+        Mesh.SetPoint(0, ipb,
+                      P0 + (P4 - P0) * (double)(i / (double)(thick_num - 1)));
     }
 
     Mesh.Generate();
