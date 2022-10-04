@@ -21,8 +21,7 @@ class Mesher {
     Mesher() = delete;
     Mesher(int _inum, int _jnum, T _DEPS = T(1e-8), int _ITRMAX = 100000)
         : inum(_inum), jnum(_jnum), DEPS(_DEPS), ITRMAX(_ITRMAX) {
-        this->pin = std::vector<std::vector<Point<T> > >(
-            this->inum, std::vector<Point<T> >(this->jnum, Point<T>(T(), T())));
+        this->pin = std::vector<Point<T> >(this->inum * this->jnum, Point<T>());
     }
     Mesher(const Mesher<T>&) = delete;
     ~Mesher() {}
@@ -30,7 +29,7 @@ class Mesher {
     void SetPoint(int _i, int _j, const Point<T>& point) {
         int i = _i == -1 ? this->inum - 1 : _i,
             j = _j == -1 ? this->jnum - 1 : _j;
-        this->pin[i][j] = point;
+        this->pin[this->ID(i, j)] = point;
     }
     void Generate() {
         //----------Solve Laplace equation----------
@@ -39,28 +38,30 @@ class Mesher {
             for (int i = 1; i < this->inum - 1; i++) {
                 for (int j = 1; j < this->jnum - 1; j++) {
                     //.....Make Laplace equation.....
-                    Point<T> xxi =
-                        0.5 * (this->pin[i + 1][j] - this->pin[i - 1][j]);
-                    Point<T> xiota =
-                        0.5 * (this->pin[i][j + 1] - this->pin[i][j - 1]);
+                    Point<T> xxi = 0.5 * (this->pin[this->ID(i + 1, j)] -
+                                          this->pin[this->ID(i - 1, j)]);
+                    Point<T> xiota = 0.5 * (this->pin[this->ID(i, j + 1)] -
+                                            this->pin[this->ID(i, j - 1)]);
                     T alpha = xiota.Dot(xiota) + 1.0e-8;
                     T beta = xxi.Dot(xiota);
                     T ganma = xxi.Dot(xxi) + 1.0e-8;
 
                     //.....Update values.....
-                    Point<T> tmp = this->pin[i][j];
-                    this->pin[i][j] =
+                    Point<T> tmp = this->pin[this->ID(i, j)];
+                    this->pin[this->ID(i, j)] =
                         (0.5 / (alpha + ganma)) *
-                        (alpha * (this->pin[i + 1][j] + this->pin[i - 1][j]) -
+                        (alpha * (this->pin[this->ID(i + 1, j)] +
+                                  this->pin[this->ID(i - 1, j)]) -
                          0.5 * beta *
-                             (this->pin[i + 1][j + 1] -
-                              this->pin[i - 1][j + 1] -
-                              this->pin[i + 1][j - 1] +
-                              this->pin[i - 1][j - 1]) +
-                         ganma * (this->pin[i][j + 1] + this->pin[i][j - 1]));
+                             (this->pin[this->ID(i + 1, j + 1)] -
+                              this->pin[this->ID(i - 1, j + 1)] -
+                              this->pin[this->ID(i + 1, j - 1)] +
+                              this->pin[this->ID(i - 1, j - 1)]) +
+                         ganma * (this->pin[this->ID(i, j + 1)] +
+                                  this->pin[this->ID(i, j - 1)]));
 
                     //.....Get norm maximam.....
-                    T dxtmp = (tmp - this->pin[i][j]).Norm();
+                    T dxtmp = (tmp - this->pin[this->ID(i, j)]).Norm();
                     if (dxmax < dxtmp) {
                         dxmax = dxtmp;
                     }
@@ -84,9 +85,10 @@ class Mesher {
 
         //----------Points----------
         fout << "\nPOINTS\t" << this->inum * this->jnum << "\tfloat\n";
-        for (auto pinrow : this->pin) {
-            for (auto pinone : pinrow) {
-                fout << pinone[0] << "\t" << pinone[1] << "\t" << 0.0 << "\n";
+        for (int i = 0; i < this->inum; i++) {
+            for (int j = 0; j < this->jnum; j++) {
+                fout << this->pin[this->ID(i, j)][0] << "\t"
+                     << this->pin[this->ID(i, j)][1] << "\t" << 0.0 << "\n";
             }
         }
 
@@ -112,11 +114,11 @@ class Mesher {
     }
 
    private:
-    const int inum, jnum;
-
-    std::vector<std::vector<Point<T> > > pin;
-
-    const int ITRMAX;
+    const int inum, jnum, ITRMAX;
     const T DEPS;
+
+    std::vector<Point<T> > pin;
+
+    int ID(int i, int j) const { return i + this->inum * j; }
 };
 }  // namespace EllipticalPAN
