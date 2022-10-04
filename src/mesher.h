@@ -1,29 +1,71 @@
-//*****************************************************************************
-// Title		:src/cpp/EllipticalMesher.h
-// Author	:Tanabe Yuta
-// Date		:2019/10/25
-// Copyright	:(C)2019 TanabeYuta
-//*****************************************************************************
+/**
+ * @file mesher.h
+ * @author PANFACTORY (github/PANFACTORY)
+ * @brief Define and implement the Mesher class
+ * @version 0.1
+ * @date 2022-10-05
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 
 #pragma once
 #include <iostream>
 
 namespace EllipticalPAN {
+/**
+ * @brief Mesher class
+ *
+ * @tparam P    Template class of Point
+ *              This must contain thise methods:
+ *                  Default constructor setting x and y to 0
+ *                  Copy constructor
+ *                  operator+ : vector vector addition
+ *                  operator- : vector vector subtruction
+ *                  operator* : vector scalar multiplication
+ *                  operator/ : vector scalar division
+ *                  operator[]: access each element for example [0] is x
+ *                  Dot(P<T>) : scalar product with P<T>
+ *                  Norm()    : norm of the vector
+ * @tparam T    Type of variable for example double
+ */
 template <template <class> class P, class T>
 class Mesher {
    public:
     Mesher() = delete;
+    Mesher(const Mesher<P, T>&) = delete;
+    ~Mesher() { delete[] this->p; }
+
+    /**
+     * @brief Construct a new Mesher object
+     *
+     * @param _ni       Number of horizontal grid points
+     * @param _nj       Number of vertical grid points
+     * @param _DEPS     Convergence criterion
+     * @param _ITRMAX   Maximum number of iteration
+     */
     Mesher(int _ni, int _nj, T _DEPS = T(1e-8), int _ITRMAX = 100000)
         : ni(_ni), nj(_nj), DEPS(_DEPS), ITRMAX(_ITRMAX) {
         this->p = new P<T>[this->ni * this->nj];
     }
-    Mesher(const Mesher<P, T>&) = delete;
-    ~Mesher() { delete[] this->p; }
 
+    /**
+     * @brief Set the Point object
+     *
+     * @param _i    Horizontal position to set
+     * @param _j    Vertical position to set
+     * @param point Point object set
+     */
     void SetPoint(int _i, int _j, const P<T>& point) {
         int i = _i == -1 ? this->ni - 1 : _i, j = _j == -1 ? this->nj - 1 : _j;
         this->p[this->ID(i, j)] = point;
     }
+
+    /**
+     * @brief Generate mesh
+     *
+     * @return int  Number of steps at convergence
+     */
     int Generate() {
         //----------Solve Laplace equation----------
         for (int itr = 0; itr < this->ITRMAX; itr++) {
@@ -67,6 +109,12 @@ class Mesher {
         }
         return this->ITRMAX;
     }
+
+    /**
+     * @brief Export mesh as vtk format to stream
+     *
+     * @param fout  Stream updated
+     */
     void ExportAsVTK(std::ostream& fout) {
         //----------Headers----------
         fout << "# vtk DataFile Version 4.1" << std::endl;
@@ -80,7 +128,7 @@ class Mesher {
         for (int i = 0; i < this->ni; i++) {
             for (int j = 0; j < this->nj; j++) {
                 fout << this->p[this->ID(i, j)][0] << "\t"
-                     << this->p[this->ID(i, j)][1] << "\t" << 0.0 << std::endl;
+                     << this->p[this->ID(i, j)][1] << "\t" << T() << std::endl;
             }
         }
 
