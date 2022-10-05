@@ -1,10 +1,3 @@
-//*****************************************************************************
-// Title		:src/cpp/main.cpp
-// Author	:Tanabe Yuta
-// Date		:2019/10/25
-// Copyright	:(C)2019 TanabeYuta
-//*****************************************************************************
-
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <fstream>
@@ -15,6 +8,7 @@
 #include "../src/point.h"
 
 using namespace EllipticalPAN;
+
 int main() {
     const double height = 2.0, width = 10.0, offset = 0.5;
     const int trail_num = 70, thick_num = 30, lead_num = 77;
