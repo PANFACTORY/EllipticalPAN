@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "../src/mesher.h"
-#include "../src/point.h"
+#include "../src/vec2.h"
 
 using namespace EllipticalPAN;
 
@@ -17,22 +17,22 @@ int main() {
     if (!ifs) {
         std::exit(1);
     }
-    std::vector<Point<double>> PF(0);
+    std::vector<Vec2<double>> PF(0);
     while (!ifs.eof()) {
         double x, y;
         ifs >> x >> y;
-        PF.push_back(Point<double>(x, y));
+        PF.push_back(Vec2<double>(x, y));
     }
 
     int foil_num = PF.size(), side_num = trail_num + (foil_num - lead_num) / 2;
 
-    Mesher<Point<double>, double> Mesh(foil_num + trail_num * 2, thick_num);
+    Mesher<Vec2<double>, double> Mesh(foil_num + trail_num * 2, thick_num);
 
-    Point<double> P0(width, 0.0);
-    Point<double> P1(width, height);
-    Point<double> P2(offset, height);
-    Point<double> P3(offset, -height);
-    Point<double> P4(width, -height);
+    Vec2<double> P0(width, 0.0);
+    Vec2<double> P1(width, height);
+    Vec2<double> P2(offset, height);
+    Vec2<double> P3(offset, -height);
+    Vec2<double> P4(width, -height);
 
     int ipb = 0;
     for (int i = 0; i < trail_num; i++, ipb++) {
@@ -60,7 +60,7 @@ int main() {
     for (int i = 0; i < lead_num; i++, ipb++) {
         Mesh.SetPoint(
             ipb, -1,
-            Point<double>(
+            Vec2<double>(
                 offset - height * sin(M_PI * i / (double)(lead_num - 1)),
                 -height * cos(M_PI * i / (double)(lead_num - 1))));
     }
