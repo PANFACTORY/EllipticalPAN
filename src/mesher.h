@@ -24,12 +24,12 @@ namespace EllipticalPAN {
  *                  operator- : vector vector subtruction
  *                  operator* : vector scalar multiplication
  *                  operator/ : vector scalar division
- *                  operator[]: access each element for example [0] is x
- *                  Dot(P<T>) : scalar product with P<T>
- *                  Norm()    : norm of the vector
+ *                  operator(): access each element for example (0) is x
+ *                  dot(P)    : scalar product with P
+ *                  norm()    : norm of the vector
  * @tparam T    Type of variable for example double
  */
-template <template <class> class P, class T>
+template <class P, class T>
 class Mesher {
    public:
     Mesher() = delete;
@@ -46,7 +46,7 @@ class Mesher {
      */
     Mesher(int _ni, int _nj, T _DEPS = T(1e-8), int _ITRMAX = 100000)
         : ni(_ni), nj(_nj), DEPS(_DEPS), ITRMAX(_ITRMAX) {
-        this->p = new P<T>[this->ni * this->nj];
+        this->p = new P[this->ni * this->nj];
     }
 
     /**
@@ -56,7 +56,7 @@ class Mesher {
      * @param _j    Vertical position to set
      * @param point Point object set
      */
-    void SetPoint(int _i, int _j, const P<T>& point) {
+    void SetPoint(int _i, int _j, const P& point) {
         int i = _i == -1 ? this->ni - 1 : _i, j = _j == -1 ? this->nj - 1 : _j;
         this->p[this->ID(i, j)] = point;
     }
@@ -73,16 +73,16 @@ class Mesher {
             for (int i = 1; i < this->ni - 1; i++) {
                 for (int j = 1; j < this->nj - 1; j++) {
                     //.....Make Laplace equation.....
-                    P<T> xxi = 0.5 * (this->p[this->ID(i + 1, j)] -
-                                      this->p[this->ID(i - 1, j)]);
-                    P<T> xiota = 0.5 * (this->p[this->ID(i, j + 1)] -
-                                        this->p[this->ID(i, j - 1)]);
-                    T alpha = xiota.Dot(xiota) + 1.0e-8;
-                    T beta = xxi.Dot(xiota);
-                    T ganma = xxi.Dot(xxi) + 1.0e-8;
+                    P xxi = 0.5 * (this->p[this->ID(i + 1, j)] -
+                                   this->p[this->ID(i - 1, j)]);
+                    P xiota = 0.5 * (this->p[this->ID(i, j + 1)] -
+                                     this->p[this->ID(i, j - 1)]);
+                    T alpha = xiota.dot(xiota) + T(1.0e-8);
+                    T beta = xxi.dot(xiota) + T(1.0e-8);
+                    T ganma = xxi.dot(xxi) + T(1.0e-8);
 
                     //.....Update values.....
-                    P<T> tmp = this->p[this->ID(i, j)];
+                    P tmp = this->p[this->ID(i, j)];
                     this->p[this->ID(i, j)] =
                         (0.5 / (alpha + ganma)) *
                         (alpha * (this->p[this->ID(i + 1, j)] +
@@ -96,7 +96,7 @@ class Mesher {
                                   this->p[this->ID(i, j - 1)]));
 
                     //.....Get norm maximam.....
-                    T dxtmp = (tmp - this->p[this->ID(i, j)]).Norm();
+                    T dxtmp = (tmp - this->p[this->ID(i, j)]).norm();
                     if (dxmax < dxtmp) {
                         dxmax = dxtmp;
                     }
@@ -127,8 +127,8 @@ class Mesher {
              << "POINTS\t" << this->ni * this->nj << "\tfloat" << std::endl;
         for (int i = 0; i < this->ni; i++) {
             for (int j = 0; j < this->nj; j++) {
-                fout << this->p[this->ID(i, j)][0] << "\t"
-                     << this->p[this->ID(i, j)][1] << "\t" << T() << std::endl;
+                fout << this->p[this->ID(i, j)](0) << "\t"
+                     << this->p[this->ID(i, j)](1) << "\t" << T() << std::endl;
             }
         }
 
@@ -157,7 +157,7 @@ class Mesher {
     const int ni, nj, ITRMAX;
     const T DEPS;
 
-    P<T>* p;
+    P* p;
 
     int ID(int i, int j) const { return i + this->ni * j; }
 };

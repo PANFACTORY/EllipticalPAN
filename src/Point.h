@@ -81,11 +81,12 @@ class Point {
     }
 
     T& operator[](unsigned int index) { return this->x[index]; }
+    T& operator()(unsigned int index) { return this->x[index]; }
 
-    T Dot(const Point<T>& point) const {
+    T dot(const Point<T>& point) const {
         return this->x[0] * point.x[0] + this->x[1] * point.x[1];
     }
-    T Norm() const { return sqrt(this->Dot(*this)); }
+    T norm() const { return sqrt(this->dot(*this)); }
 
    private:
     T x[2];

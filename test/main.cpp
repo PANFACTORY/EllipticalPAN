@@ -32,7 +32,7 @@ int main() {
 
     int foil_num = PF.size(), side_num = trail_num + (foil_num - lead_num) / 2;
 
-    Mesher<Point, double> Mesh(foil_num + trail_num * 2, thick_num);
+    Mesher<Point<double>, double> Mesh(foil_num + trail_num * 2, thick_num);
 
     Point<double> P0(width, 0.0);
     Point<double> P1(width, height);
