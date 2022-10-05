@@ -7,6 +7,17 @@ Generate a C type mesh as bellow.
 
 This is a header only library.
 
+## Example
+
+The above mesh is generated from `sample/main.cpp` .
+
+`cd sample`, build and run with this command, then you can get `mesh.vtk` (VTK format result file) .
+
+```
+clang++ -O3 ./main.cpp
+./a.exe
+```
+
 ## Document
 - [Document](https://panfactory.github.io/EllipticalPAN/)
 

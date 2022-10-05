@@ -13,7 +13,7 @@ int main() {
     const double height = 2.0, width = 10.0, offset = 0.5;
     const int trail_num = 70, thick_num = 30, lead_num = 77;
 
-    std::ifstream ifs("sample/NACA4412.dat");
+    std::ifstream ifs("NACA4412.dat");
     if (!ifs) {
         std::exit(1);
     }
@@ -76,7 +76,7 @@ int main() {
 
     std::cout << "Converged at " << Mesh.Generate() << std::endl;
 
-    std::ofstream fout("sample/mesh.vtk");
+    std::ofstream fout("mesh.vtk");
     Mesh.ExportAsVTK(fout);
     fout.close();
     return 0;
