@@ -41,11 +41,8 @@ class Mesher {
      *
      * @param _ni       Number of horizontal grid points
      * @param _nj       Number of vertical grid points
-     * @param _DEPS     Convergence criterion
-     * @param _ITRMAX   Maximum number of iteration
      */
-    Mesher(int _ni, int _nj, T _DEPS = T(1e-8), int _ITRMAX = 100000)
-        : ni(_ni), nj(_nj), DEPS(_DEPS), ITRMAX(_ITRMAX) {
+    Mesher(int _ni, int _nj) : ni(_ni), nj(_nj) {
         this->p = new P[this->ni * this->nj];
     }
 
@@ -62,13 +59,27 @@ class Mesher {
     }
 
     /**
+     * @brief Get the Point object
+     *
+     * @param _i    Horizontal position to get
+     * @param _j    Vertical position to get
+     * @return P    Point object to get
+     */
+    P GetPoint(int _i, int _j) const {
+        int i = _i == -1 ? this->ni - 1 : _i, j = _j == -1 ? this->nj - 1 : _j;
+        return this->p[this->ID(i, j)];
+    }
+
+    /**
      * @brief Generate mesh
      *
-     * @return int  Number of steps at convergence
+     * @param DEPS      Convergence criterion
+     * @param ITRMAX    Maximum number of iteration
+     * @return int      Number of steps at convergence
      */
-    int Generate() {
+    int Generate(T DEPS = T(1e-8), int ITRMAX = 100000) {
         //----------Solve Laplace equation----------
-        for (int itr = 0; itr < this->ITRMAX; itr++) {
+        for (int itr = 0; itr < ITRMAX; itr++) {
             T dxmax = T();
             for (int i = 1; i < this->ni - 1; i++) {
                 for (int j = 1; j < this->nj - 1; j++) {
@@ -107,7 +118,7 @@ class Mesher {
                 return itr + 1;
             }
         }
-        return this->ITRMAX;
+        return ITRMAX;
     }
 
     /**
@@ -154,8 +165,7 @@ class Mesher {
     }
 
    private:
-    const int ni, nj, ITRMAX;
-    const T DEPS;
+    const int ni, nj;
 
     P* p;
 
