@@ -11,7 +11,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
-add_executable(EllipticalPANTest test/*.cpp)
+add_executable(EllipticalPANTest test/mesher_test.cpp)
 target_link_libraries(EllipticalPANTest gtest_main)
 
 include(GoogleTest)
