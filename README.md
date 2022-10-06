@@ -7,6 +7,13 @@ Generate a C type mesh as bellow.
 
 This is a header only library.
 
+## CI
+
+|                                                                                 Status                                                                                 |    Environment     |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------: |
+| [![CMake](https://github.com/PANFACTORY/EllipticalPAN/actions/workflows/cmake.yml/badge.svg)](https://github.com/PANFACTORY/EllipticalPAN/actions/workflows/cmake.yml) | ubuntu-latest(g++) |
+
+
 ## Example
 
 The above mesh is generated from `sample/main.cpp` .
